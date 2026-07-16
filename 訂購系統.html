@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maru Tako｜Online Order</title>
+<link rel="icon" href="maru-tako-logo-favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#ffe4b0;
+    --cream-light:#fff3d9;
+    --red:#a61c1c;
+    --red-dark:#7d1414;
+    --red-soft:#c62828;
+    --line:#f0d19c;
+    --white:#fffaf0;
+    --ink:#4a1414;
+    --danger:#c0392b;
+    --success:#5a8a5a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Nunito","PingFang TC","Microsoft JhengHei",Arial,sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+  }
+  h1,h2,h3,.brand-font{
+    font-family:"Baloo 2","PingFang TC","Microsoft JhengHei",sans-serif;
+  }
+  header{
+    background:var(--red);
+    color:var(--cream-light);
+    padding:16px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;
+    top:0;
+    z-index:50;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .logo{
+    height:64px;
+    width:auto;
+    display:block;
+  }
+  header h1{
+    margin:0;
+    font-size:22px;
+    letter-spacing:.5px;
+    line-height:1.1;
+  }
+  header h1 span{
+    display:block;
+    font-size:11px;
+    font-weight:600;
+    font-family:"Nunito",sans-serif;
+    opacity:.85;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+  }
+  nav button{
+    background:transparent;
+    border:1px solid rgba(255,255,255,.5);
+    color:var(--cream-light);
+    padding:8px 16px;
+    border-radius:20px;
+    cursor:pointer;
+    font-size:14px;
+    margin-left:8px;
+    font-family:"Nunito",sans-serif;
+    font-weight:700;
+  }
+  nav button.active{
+    background:var(--cream-light);
+    color:var(--red-dark);
+    border-color:var(--cream-light);
+  }
+  nav .nav-link{
+    color:var(--cream-light);
+    text-decoration:none;
+    font-size:14px;
+    font-weight:700;
+    font-family:"Nunito",sans-serif;
+    margin-right:14px;
+    opacity:.9;
+  }
+  nav .nav-link:hover{opacity:1;text-decoration:underline;}
+  main{
+    max-width:1100px;
+    margin:0 auto;
+    padding:24px 16px 80px;
+  }
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* ---- 商品區 ---- */
+  .layout{
+    display:grid;
+    grid-template-columns:1fr 340px;
+    gap:24px;
+    align-items:start;
+  }
+  @media (max-width:800px){
+    .layout{grid-template-columns:1fr;}
+  }
+  .category-tabs{
+    display:flex;
+    gap:10px;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+  }
+  .tab-btn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--white);
+    border:2px solid var(--line);
+    color:var(--red-dark);
+    padding:9px 18px;
+    border-radius:24px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:700;
+    font-family:"Baloo 2",sans-serif;
+    letter-spacing:.3px;
+  }
+  .tab-btn svg{width:20px;height:20px;flex-shrink:0;}
+  .tab-btn:hover{border-color:var(--red-soft);}
+  .tab-btn.active{
+    background:var(--red);
+    border-color:var(--red);
+    color:var(--cream-light);
+  }
+  .product-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:16px;
+  }
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .card .thumb{
+    width:100%;
+    height:170px;
+    border-radius:10px;
+    background:linear-gradient(135deg,#ffd58a,#ffb347);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:34px;
+    overflow:hidden;
+    position:relative;
+  }
+  .card .thumb.has-photo{
+    background-image:url('product-photos/table-texture.png');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+  .card .thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center 30%;
+    display:block;
+    position:relative;
+    z-index:1;
+  }
+  .card h3{margin:2px 0 0;font-size:16px;color:var(--red-dark);}
+  .card p.desc{margin:0;font-size:12px;color:#9c7a4a;min-height:18px;}
+  .card .price{font-weight:800;color:var(--red-soft);font-size:15px;}
+  .row{display:flex;align-items:center;gap:8px;}
+  select{
+    flex:1;
+    padding:6px 8px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    font-size:13px;
+    background:var(--white);
+  }
+  .qty{
+    display:flex;
+    align-items:center;
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .qty button{
+    background:var(--cream-light);
+    border:none;
+    width:28px;
+    height:28px;
+    cursor:pointer;
+    font-size:16px;
+  }
+  .qty input{
+    width:34px;
+    text-align:center;
+    border:none;
+    font-size:14px;
+  }
+  .add-btn{
+    margin-top:4px;
+    background:var(--red);
+    color:var(--cream-light);
+    border:none;
+    border-radius:8px;
+    padding:9px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:700;
+    font-family:"Nunito",sans-serif;
+  }
+  .add-btn:hover{background:var(--red-dark);}
+
+  /* ---- 購物車側欄 ---- */
+  .cart-column{
+    position:sticky;
+    top:90px;
+    max-height:calc(100vh - 110px);
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .cart-box{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px;
+  }
+  .cart-box h2{margin-top:0;font-size:18px;color:var(--red-dark);}
+  .cart-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 0;
+    border-bottom:1px dashed var(--line);
+    font-size:13px;
+  }
+  .cart-item .name{font-weight:700;}
+  .cart-item .spec{color:#9c7a4a;font-size:12px;}
+  .cart-item button{
+    background:none;
+    border:none;
+    color:var(--danger);
+    cursor:pointer;
+    font-size:12px;
+  }
+  .cart-total{
+    display:flex;
+    justify-content:space-between;
+    font-weight:800;
+    font-size:17px;
+    padding-top:10px;
+    color:var(--red-dark);
+  }
+  .empty-hint{color:#b08a55;font-size:13px;text-align:center;padding:20px 0;}
+
+  /* ---- 表單 ---- */
+  fieldset{
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+    margin:16px 0;
+    background:var(--white);
+  }
+  .cart-column fieldset{
+    margin:0;
+  }
+  legend{padding:0 8px;font-weight:800;color:var(--red);font-family:"Baloo 2",sans-serif;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:13px;margin-bottom:4px;color:#6b3a1f;}
+  .field input, .field select, .field textarea{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    font-size:14px;
+    background:var(--white);
+    font-family:inherit;
+  }
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:520px){.two-col{grid-template-columns:1fr;}}
+  .submit-btn{
+    width:100%;
+    background:var(--red);
+    color:var(--cream-light);
+    border:none;
+    border-radius:10px;
+    padding:14px;
+    font-size:16px;
+    cursor:pointer;
+    margin-top:8px;
+    font-weight:800;
+    font-family:"Baloo 2",sans-serif;
+    letter-spacing:.5px;
+  }
+  .submit-btn:hover{background:var(--red-dark);}
+  .error{color:var(--danger);font-size:12px;margin-top:4px;display:none;}
+
+  /* ---- 確認頁 ---- */
+  .confirm-box{
+    max-width:500px;
+    margin:40px auto;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:32px;
+    text-align:center;
+  }
+  .confirm-box .check{font-size:48px;}
+  .confirm-box h2{color:var(--success);margin:8px 0;}
+  .order-id{
+    display:inline-block;
+    background:var(--cream);
+    border:1px dashed var(--red-soft);
+    padding:6px 14px;
+    border-radius:8px;
+    font-weight:800;
+    margin:8px 0 16px;
+    color:var(--red-dark);
+  }
+  .confirm-detail{
+    text-align:left;
+    background:var(--cream-light);
+    border-radius:10px;
+    padding:14px;
+    font-size:14px;
+    margin-top:12px;
+  }
+  .confirm-detail div{padding:3px 0;}
+  .back-btn{
+    margin-top:20px;
+    background:var(--red);
+    color:var(--cream-light);
+    border:none;
+    padding:10px 22px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:700;
+  }
+
+  /* ---- 後台 ---- */
+  .admin-login{
+    max-width:360px;
+    margin:60px auto;
+    background:var(--white);
+    padding:28px;
+    border-radius:14px;
+    border:1px solid var(--line);
+    text-align:center;
+  }
+  .admin-login input{
+    width:100%;
+    padding:10px;
+    margin:12px 0;
+    border-radius:8px;
+    border:1px solid var(--line);
+  }
+  .admin-login button{
+    background:var(--red);
+    color:var(--cream-light);
+    border:none;
+    padding:10px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    width:100%;
+    font-weight:700;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--white);
+    border-radius:12px;
+    overflow:hidden;
+    font-size:13px;
+  }
+  th,td{
+    padding:10px 8px;
+    border-bottom:1px solid var(--line);
+    text-align:left;
+    vertical-align:top;
+  }
+  th{background:var(--red);color:var(--cream-light);font-weight:700;}
+  tr:hover td{background:#fff4de;}
+  .status-select{
+    padding:5px 6px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    font-size:12px;
+  }
+  .st-Pending{background:#c76a3b;}
+  .st-Preparing{background:#c79a3b;}
+  .st-Ready{background:#5a8a5a;}
+  .st-PickedUp{background:#4a2c17;}
+  .del-btn{
+    background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px;
+  }
+  .admin-toolbar{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;
+  }
+  .admin-toolbar .stats{font-size:13px;color:#9c7a4a;}
+  .export-btn{
+    background:var(--red-soft);
+    color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;
+  }
+  .logout-btn{
+    background:none;border:1px solid var(--line);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;
+  }
+  footer{
+    background:var(--red);
+    color:var(--cream-light);
+    text-align:center;
+    padding:22px 16px;
+    font-family:"Baloo 2",sans-serif;
+  }
+  footer .tag{font-size:15px;font-weight:700;margin-bottom:6px;}
+  footer .contact{font-size:12px;font-family:"Nunito",sans-serif;opacity:.9;}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="index.html" style="text-decoration:none;color:inherit;">
+    <img src="maru-tako-logo.png" alt="Maru Tako" class="logo">
+    <h1><span>Osaka Street Food, Made Fresh</span></h1>
+  </a>
+  <nav>
+    <a class="nav-link" href="index.html#story">Our Story</a>
+    <button id="navOrder" class="active" onclick="showView('order')">Order</button>
+    <button id="navAdmin" onclick="showView('admin')">Admin</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ========== 訂購頁 ========== -->
+  <section id="view-order" class="view active">
+    <div class="layout">
+      <div>
+        <div class="category-tabs" id="categoryTabs"></div>
+        <div class="product-grid" id="productGrid"></div>
+      </div>
+
+      <div class="cart-column">
+        <div class="cart-box">
+          <h2>🛒 Your Cart</h2>
+          <div id="cartList"></div>
+          <div class="cart-total">
+            <span>Total</span>
+            <span id="cartTotal">$0.00</span>
+          </div>
+        </div>
+
+        <fieldset id="customerForm">
+          <legend>Order Details</legend>
+          <div class="field">
+            <label>Name *</label>
+            <input type="text" id="custName" placeholder="Your name">
+            <div class="error" id="err-name">Please enter your name</div>
+          </div>
+          <div class="field">
+            <label>Phone *</label>
+            <input type="tel" id="custPhone" placeholder="Your phone number">
+            <div class="error" id="err-phone">Please enter a valid phone number</div>
+          </div>
+          <div class="field">
+            <label>Pickup Method *</label>
+            <select id="custMethod" onchange="toggleAddress()">
+              <option value="Pickup">Store Pickup</option>
+              <option value="Delivery">Delivery</option>
+            </select>
+          </div>
+          <div class="field" id="addressField" style="display:none;">
+            <label>Delivery Address *</label>
+            <input type="text" id="custAddress" placeholder="Full delivery address">
+            <div class="error" id="err-address">Please enter an address</div>
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label>Date *</label>
+              <input type="date" id="custDate">
+              <div class="error" id="err-date">Please choose a date</div>
+            </div>
+            <div class="field">
+              <label>Time *</label>
+              <input type="time" id="custTime">
+              <div class="error" id="err-time">Please choose a time</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Notes</label>
+            <textarea id="custNote" rows="2" placeholder="Allergies, special requests, etc."></textarea>
+          </div>
+          <div class="error" id="err-cart">Your cart is empty — add something first!</div>
+          <button class="submit-btn" onclick="submitOrder()">Place Order</button>
+        </fieldset>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 確認頁 ========== -->
+  <section id="view-confirm" class="view">
+    <div class="confirm-box">
+      <div class="check">🐙</div>
+      <h2>Order placed!</h2>
+      <div class="order-id" id="confirmOrderId"></div>
+      <div class="confirm-detail" id="confirmDetail"></div>
+      <button class="back-btn" onclick="resetToOrder()">Place Another Order</button>
+    </div>
+  </section>
+
+  <!-- ========== 後台登入 ========== -->
+  <section id="view-admin" class="view">
+    <div id="adminLoginBox" class="admin-login">
+      <h3>Shop Admin Login</h3>
+      <p style="font-size:12px;color:#b08a55;">Default password: <b>marutako</b> (change it in the source code)</p>
+      <input type="password" id="adminPw" placeholder="Enter password" onkeydown="if(event.key==='Enter')adminLogin()">
+      <button onclick="adminLogin()">Log In</button>
+    </div>
+
+    <div id="adminPanel" style="display:none;">
+      <div class="admin-toolbar">
+        <div class="stats" id="adminStats"></div>
+        <div>
+          <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+          <button class="logout-btn" onclick="adminLogout()">Log Out</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Method</th>
+              <th>Pickup Time</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Notes</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="orderTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="tag">Maru Tako — Osaka Street Food, Made Fresh.</div>
+  <div class="contact">1234 N Sakura Ave, Chicago, IL 60622 · (312) 555-0188 · hello@marutako.com · www.marutako.com</div>
+</footer>
+
+<script>
+/* =========================================================
+   商品資料：想改品項/口味/價格,直接改這個陣列就好
+   每個 spec 是「絕對價格」(不是加價),適合像章魚燒 6顆/8顆 這種不同份量報價
+   ========================================================= */
+const PRODUCTS = [
+  { id:'t1', category:'Takoyaki', name:'Original Osaka', emoji:'🐙', photo:'product-photos/t1-original-osaka.png', desc:'Classic recipe, bonito flakes & tonkatsu sauce',
+    specs:[{label:'6 pcs',price:7.99},{label:'8 pcs',price:9.99}] },
+  { id:'t2', category:'Takoyaki', name:'Cheese Lover', emoji:'🧀', photo:'product-photos/t2-cheese-lover.png', desc:'Melted mozzarella core',
+    specs:[{label:'6 pcs',price:8.49},{label:'8 pcs',price:10.49}] },
+  { id:'t3', category:'Takoyaki', name:'Spicy Mayo', emoji:'🌶️', photo:'product-photos/t3-spicy-mayo.png', desc:'Sriracha mayo drizzle',
+    specs:[{label:'6 pcs',price:8.49},{label:'8 pcs',price:10.49}] },
+  { id:'t4', category:'Takoyaki', name:'Garlic Butter', emoji:'🧈', photo:'product-photos/t4-garlic-butter.png', desc:'Roasted garlic butter glaze',
+    specs:[{label:'6 pcs',price:8.49},{label:'8 pcs',price:10.49}] },
+  { id:'t5', category:'Takoyaki', name:'Corn & Cheese', emoji:'🌽', photo:'product-photos/t5-corn-cheese.png', desc:'Sweet corn and melted cheese',
+    specs:[{label:'6 pcs',price:8.99},{label:'8 pcs',price:10.99}] },
+  { id:'t6', category:'Takoyaki', name:'Truffle Parmesan', emoji:'🍄', photo:'product-photos/t6-truffle-parmesan.png', desc:'Black truffle oil & shaved parmesan',
+    specs:[{label:'6 pcs',price:10.99},{label:'8 pcs',price:13.99}] },
+  { id:'t7', category:'Takoyaki', name:'Popcorn Chicken', emoji:'🍗', photo:'product-photos/t7-popcorn-chicken.png', desc:'Topped with crispy popcorn chicken',
+    specs:[{label:'6 pcs',price:9.99},{label:'8 pcs',price:11.99}] },
+  { id:'t8', category:'Takoyaki', name:'Chicago Fire', emoji:'🔥', photo:'product-photos/t8-chicago-fire.png', desc:'House hot sauce, jalapeño & spicy mayo',
+    specs:[{label:'6 pcs',price:9.99},{label:'8 pcs',price:11.99}] },
+
+  { id:'d1', category:'Drink', name:'Japanese Soda', emoji:'🥤', photo:'product-photos/d1-japanese-soda.png', desc:'Ramune-style soda',
+    specs:[{label:'Regular',price:3.50}] },
+  { id:'d2', category:'Drink', name:'Yuzu Lemonade', emoji:'🍋', photo:'product-photos/d2-yuzu-lemonade.png', desc:'Fresh yuzu & lemon',
+    specs:[{label:'Regular',price:4.50}] },
+  { id:'d3', category:'Drink', name:'Mango Green Tea', emoji:'🥭', photo:'product-photos/d3-mango-green-tea.png', desc:'Iced green tea with mango',
+    specs:[{label:'Regular',price:4.99}] },
+  { id:'d4', category:'Drink', name:'Passion Fruit Tea', emoji:'🍹', photo:'product-photos/d4-passion-fruit-tea.png', desc:'Iced tea with passion fruit',
+    specs:[{label:'Regular',price:4.99}] },
+  { id:'d5', category:'Drink', name:'Matcha Latte', emoji:'🍵', photo:'product-photos/d5-matcha-latte.png', desc:'Ceremonial grade matcha',
+    specs:[{label:'Regular',price:5.50}] },
+  { id:'d6', category:'Drink', name:'Hojicha Latte', emoji:'🍵', photo:'product-photos/d6-hojicha-latte.png', desc:'Roasted green tea latte',
+    specs:[{label:'Regular',price:5.50}] },
+  { id:'d7', category:'Drink', name:'Brown Sugar Milk Tea', emoji:'🧋', photo:'product-photos/d7-brown-sugar-milk-tea.png', desc:'Boba with brown sugar syrup',
+    specs:[{label:'Regular',price:5.99}] },
+  { id:'d8', category:'Drink', name:'Sakura Lemonade', emoji:'🌸', photo:'product-photos/d8-sakura-lemonade.png', desc:'Cherry blossom lemonade',
+    specs:[{label:'Regular',price:5.99}] },
+];
+
+const CATEGORY_ORDER = ['Takoyaki','Drink'];
+
+/* 分類 icon：單色線條 SVG,顏色會跟著 currentColor(文字色)自動變化 */
+const CATEGORY_ICONS = {
+  Takoyaki: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="4" y1="20" x2="19" y2="5"/>
+      <circle cx="7.5" cy="16.5" r="3"/>
+      <circle cx="12.5" cy="11.5" r="3"/>
+      <circle cx="17.5" cy="6.5" r="2.4"/>
+    </svg>`,
+  Drink: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="2" x2="12" y2="6"/>
+      <path d="M8 6h9l-1.1 12.5a2 2 0 0 1-2 1.8h-4.8a2 2 0 0 1-2-1.8L8 6Z"/>
+      <line x1="7.3" y1="11" x2="16.7" y2="11"/>
+    </svg>`
+};
+
+let currentCategory = 'Takoyaki';
+let cart = []; // {productId, name, spec, unitPrice, qty}
+
+/* ---------- 分類 Tab Bar ---------- */
+function renderTabs(){
+  const bar = document.getElementById('categoryTabs');
+  bar.innerHTML = CATEGORY_ORDER.map(cat=>`
+    <button class="tab-btn ${cat===currentCategory?'active':''}" onclick="selectCategory('${cat}')">
+      ${CATEGORY_ICONS[cat]}
+      <span>${cat === 'Takoyaki' ? 'Takoyaki' : 'Drinks'}</span>
+    </button>
+  `).join('');
+}
+
+function selectCategory(cat){
+  currentCategory = cat;
+  renderTabs();
+  renderProducts();
+}
+
+/* ---------- 畫面切換 ---------- */
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('navOrder').classList.remove('active');
+  document.getElementById('navAdmin').classList.remove('active');
+  if(v==='order'){ document.getElementById('view-order').classList.add('active'); document.getElementById('navOrder').classList.add('active'); }
+  if(v==='confirm'){ document.getElementById('view-confirm').classList.add('active'); }
+  if(v==='admin'){ document.getElementById('view-admin').classList.add('active'); document.getElementById('navAdmin').classList.add('active'); renderAdminIfLoggedIn(); }
+}
+
+/* ---------- 商品渲染(依目前分類過濾) ---------- */
+function renderProducts(){
+  const grid = document.getElementById('productGrid');
+  const items = PRODUCTS.filter(p=>p.category===currentCategory);
+  grid.innerHTML = items.map(p=>{
+    const hasChoice = p.specs.length > 1;
+    const priceLabel = hasChoice
+      ? `from $${Math.min(...p.specs.map(s=>s.price)).toFixed(2)}`
+      : `$${p.specs[0].price.toFixed(2)}`;
+    const specRow = hasChoice
+      ? `<div class="row">
+          <select id="spec-${p.id}">
+            ${p.specs.map(s=>`<option value="${s.label}" data-price="${s.price}">${s.label} — $${s.price.toFixed(2)}</option>`).join('')}
+          </select>
+        </div>`
+      : `<input type="hidden" id="spec-${p.id}" value="${p.specs[0].label}" data-price="${p.specs[0].price}">`;
+    return `
+    <div class="card">
+      <div class="thumb${p.photo ? ' has-photo' : ''}">${p.photo ? `<img src="${p.photo}" alt="${p.name}">` : p.emoji}</div>
+      <h3>${p.name}</h3>
+      <p class="desc">${p.desc}</p>
+      <div class="price">${priceLabel}</div>
+      ${specRow}
+      <div class="row">
+        <div class="qty">
+          <button onclick="stepQty('${p.id}',-1)">-</button>
+          <input type="number" id="qty-${p.id}" value="1" min="1" max="99">
+          <button onclick="stepQty('${p.id}',1)">+</button>
+        </div>
+        <button class="add-btn" style="flex:1" onclick="addToCart('${p.id}')">Add</button>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function stepQty(id, delta){
+  const input = document.getElementById('qty-'+id);
+  let v = parseInt(input.value||'1') + delta;
+  if(v<1) v=1;
+  if(v>99) v=99;
+  input.value = v;
+}
+
+function addToCart(id){
+  const p = PRODUCTS.find(x=>x.id===id);
+  const specEl = document.getElementById('spec-'+id);
+  const spec = specEl.value;
+  const unitPrice = parseFloat((specEl.tagName === 'SELECT' ? specEl.selectedOptions[0].dataset.price : specEl.dataset.price) || '0');
+  const qty = parseInt(document.getElementById('qty-'+id).value||'1');
+
+  const existing = cart.find(c=>c.productId===id && c.spec===spec);
+  if(existing){ existing.qty += qty; }
+  else{ cart.push({productId:id, name:p.name, spec, unitPrice, qty}); }
+  renderCart();
+}
+
+function removeFromCart(idx){
+  cart.splice(idx,1);
+  renderCart();
+}
+
+function renderCart(){
+  const list = document.getElementById('cartList');
+  if(cart.length===0){
+    list.innerHTML = '<div class="empty-hint">Your cart is empty — pick a few items!</div>';
+  } else {
+    list.innerHTML = cart.map((c,i)=>`
+      <div class="cart-item">
+        <div>
+          <div class="name">${c.name} x${c.qty}</div>
+          <div class="spec">${c.spec} · $${c.unitPrice.toFixed(2)} each</div>
+        </div>
+        <div style="text-align:right;">
+          <div>$${(c.unitPrice*c.qty).toFixed(2)}</div>
+          <button onclick="removeFromCart(${i})">Remove</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  const total = cart.reduce((s,c)=>s+c.unitPrice*c.qty,0);
+  document.getElementById('cartTotal').textContent = '$'+total.toFixed(2);
+}
+
+function toggleAddress(){
+  const method = document.getElementById('custMethod').value;
+  document.getElementById('addressField').style.display = method==='Delivery' ? 'block' : 'none';
+}
+
+/* ---------- 送出訂單 ---------- */
+function submitOrder(){
+  let ok = true;
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const method = document.getElementById('custMethod').value;
+  const address = document.getElementById('custAddress').value.trim();
+  const date = document.getElementById('custDate').value;
+  const time = document.getElementById('custTime').value;
+  const note = document.getElementById('custNote').value.trim();
+
+  document.querySelectorAll('.error').forEach(e=>e.style.display='none');
+
+  if(!name){ showErr('err-name'); ok=false; }
+  if(!phone || phone.length<8){ showErr('err-phone'); ok=false; }
+  if(method==='Delivery' && !address){ showErr('err-address'); ok=false; }
+  if(!date){ showErr('err-date'); ok=false; }
+  if(!time){ showErr('err-time'); ok=false; }
+  if(cart.length===0){ showErr('err-cart'); ok=false; }
+  if(!ok) return;
+
+  const total = cart.reduce((s,c)=>s+c.unitPrice*c.qty,0);
+  const orderId = 'MT' + Date.now().toString().slice(-8);
+  const order = {
+    id: orderId,
+    createdAt: new Date().toISOString(),
+    name, phone, method, address, date, time, note,
+    items: cart.map(c=>({...c})),
+    total,
+    status: 'Pending'
+  };
+
+  const orders = JSON.parse(localStorage.getItem('marutako_orders')||'[]');
+  orders.unshift(order);
+  localStorage.setItem('marutako_orders', JSON.stringify(orders));
+
+  // 顯示確認頁
+  document.getElementById('confirmOrderId').textContent = 'Order #: '+orderId;
+  document.getElementById('confirmDetail').innerHTML = `
+    <div><b>Name:</b> ${name}</div>
+    <div><b>Phone:</b> ${phone}</div>
+    <div><b>Method:</b> ${method}${method==='Delivery'?' ('+address+')':''}</div>
+    <div><b>Time:</b> ${date} ${time}</div>
+    <div><b>Items:</b> ${cart.map(c=>`${c.name} (${c.spec}) x${c.qty}`).join(', ')}</div>
+    <div><b>Total:</b> $${total.toFixed(2)}</div>
+    ${note?`<div><b>Notes:</b> ${note}</div>`:''}
+  `;
+  showView('confirm');
+
+  // 清空購物車與表單,準備下一筆
+  cart = [];
+  renderCart();
+  document.getElementById('custName').value='';
+  document.getElementById('custPhone').value='';
+  document.getElementById('custAddress').value='';
+  document.getElementById('custDate').value='';
+  document.getElementById('custTime').value='';
+  document.getElementById('custNote').value='';
+}
+
+function showErr(id){ document.getElementById(id).style.display='block'; }
+
+function resetToOrder(){ showView('order'); }
+
+/* ---------- 後台管理 ---------- */
+const ADMIN_PASSWORD = 'marutako'; // 想改密碼就改這裡
+
+function adminLogin(){
+  const pw = document.getElementById('adminPw').value;
+  if(pw === ADMIN_PASSWORD){
+    sessionStorage.setItem('marutako_admin','1');
+    document.getElementById('adminLoginBox').style.display='none';
+    document.getElementById('adminPanel').style.display='block';
+    renderAdminTable();
+  } else {
+    alert('Incorrect password');
+  }
+}
+
+function adminLogout(){
+  sessionStorage.removeItem('marutako_admin');
+  document.getElementById('adminLoginBox').style.display='block';
+  document.getElementById('adminPanel').style.display='none';
+  document.getElementById('adminPw').value='';
+}
+
+function renderAdminIfLoggedIn(){
+  if(sessionStorage.getItem('marutako_admin')==='1'){
+    document.getElementById('adminLoginBox').style.display='none';
+    document.getElementById('adminPanel').style.display='block';
+    renderAdminTable();
+  }
+}
+
+function getOrders(){
+  return JSON.parse(localStorage.getItem('marutako_orders')||'[]');
+}
+function saveOrders(orders){
+  localStorage.setItem('marutako_orders', JSON.stringify(orders));
+}
+
+function renderAdminTable(){
+  const orders = getOrders();
+  const tbody = document.getElementById('orderTableBody');
+  const statuses = ['Pending','Preparing','Ready','Picked Up'];
+
+  document.getElementById('adminStats').textContent =
+    `${orders.length} orders · Total $${orders.reduce((s,o)=>s+o.total,0).toFixed(2)}`;
+
+  if(orders.length===0){
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:#b08a55;padding:24px;">No orders yet</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = orders.map((o,i)=>`
+    <tr>
+      <td>${o.id}</td>
+      <td>${o.name}</td>
+      <td>${o.phone}</td>
+      <td>${o.method}${o.method==='Delivery'?'<br><small>'+o.address+'</small>':''}</td>
+      <td>${o.date}<br>${o.time}</td>
+      <td>${o.items.map(it=>`${it.name} (${it.spec}) x${it.qty}`).join('<br>')}</td>
+      <td>$${o.total.toFixed(2)}</td>
+      <td>${o.note||'-'}</td>
+      <td>
+        <select class="status-select" onchange="updateStatus(${i}, this.value)">
+          ${statuses.map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td><button class="del-btn" onclick="deleteOrder(${i})">Delete</button></td>
+    </tr>
+  `).join('');
+}
+
+function updateStatus(idx, status){
+  const orders = getOrders();
+  orders[idx].status = status;
+  saveOrders(orders);
+  renderAdminTable();
+}
+
+function deleteOrder(idx){
+  if(!confirm('Delete this order?')) return;
+  const orders = getOrders();
+  orders.splice(idx,1);
+  saveOrders(orders);
+  renderAdminTable();
+}
+
+function exportCSV(){
+  const orders = getOrders();
+  if(orders.length===0){ alert('No orders to export'); return; }
+  const header = ['Order #','Name','Phone','Method','Address','Date','Time','Items','Total','Notes','Status'];
+  const rows = orders.map(o=>[
+    o.id, o.name, o.phone, o.method, o.address||'', o.date, o.time,
+    o.items.map(it=>`${it.name}(${it.spec})x${it.qty}`).join(';'),
+    o.total.toFixed(2), o.note||'', o.status
+  ]);
+  const csv = [header, ...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'orders_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- 初始化 ---------- */
+renderTabs();
+renderProducts();
+renderCart();
+</script>
+</body>
+</html>
