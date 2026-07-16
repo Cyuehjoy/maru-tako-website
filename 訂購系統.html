@@ -90,6 +90,38 @@
     opacity:.9;
   }
   nav .nav-link:hover{opacity:1;text-decoration:underline;}
+  .cart-toggle{
+    position:relative;
+    background:transparent;
+    border:1px solid rgba(255,255,255,.5);
+    color:var(--cream-light);
+    padding:8px 14px;
+    border-radius:20px;
+    cursor:pointer;
+    font-size:18px;
+    margin-left:8px;
+    line-height:1;
+  }
+  .cart-toggle:hover{border-color:var(--cream-light);}
+  .cart-toggle{display:inline-flex;align-items:center;justify-content:center;}
+  .cart-toggle svg{width:20px;height:20px;display:block;}
+  .cart-badge{
+    position:absolute;
+    top:-6px;
+    right:-6px;
+    background:var(--cream-light);
+    color:var(--red-dark);
+    font-size:11px;
+    font-weight:800;
+    font-family:"Nunito",sans-serif;
+    min-width:18px;
+    height:18px;
+    border-radius:9px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 4px;
+  }
   main{
     max-width:1100px;
     margin:0 auto;
@@ -99,15 +131,6 @@
   .view.active{display:block;}
 
   /* ---- 商品區 ---- */
-  .layout{
-    display:grid;
-    grid-template-columns:1fr 340px;
-    gap:24px;
-    align-items:start;
-  }
-  @media (max-width:800px){
-    .layout{grid-template-columns:1fr;}
-  }
   .category-tabs{
     display:flex;
     gap:10px;
@@ -224,23 +247,65 @@
   }
   .add-btn:hover{background:var(--red-dark);}
 
-  /* ---- 購物車側欄 ---- */
-  .cart-column{
-    position:sticky;
-    top:90px;
-    max-height:calc(100vh - 110px);
-    overflow-y:auto;
+  /* ---- 購物車抽屜 ---- */
+  .cart-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(30,6,6,.45);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+    z-index:90;
+  }
+  .cart-overlay.open{opacity:1;pointer-events:auto;}
+  .cart-drawer{
+    position:fixed;
+    top:0;
+    right:0;
+    height:100%;
+    width:380px;
+    max-width:90vw;
+    background:var(--cream);
+    box-shadow:-4px 0 20px rgba(0,0,0,.25);
+    z-index:91;
+    transform:translateX(100%);
+    transition:transform .3s ease;
     display:flex;
     flex-direction:column;
-    gap:16px;
   }
-  .cart-box{
+  .cart-drawer.open{transform:translateX(0);}
+  .cart-drawer-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 20px;
+    background:var(--red);
+    color:var(--cream-light);
+    flex-shrink:0;
+  }
+  .cart-drawer-header h2{margin:0;font-size:18px;}
+  .cart-close{
+    background:transparent;
+    border:none;
+    color:var(--cream-light);
+    font-size:22px;
+    cursor:pointer;
+    line-height:1;
+    padding:4px;
+  }
+  .cart-drawer-body{
+    padding:18px 20px 40px;
+    overflow-y:auto;
+    flex:1;
+  }
+  .cart-drawer-body .cart-box{
     background:var(--white);
     border:1px solid var(--line);
     border-radius:14px;
-    padding:18px;
+    padding:16px;
+    margin-bottom:16px;
   }
-  .cart-box h2{margin-top:0;font-size:18px;color:var(--red-dark);}
+  .cart-drawer-body fieldset{margin:0;}
   .cart-item{
     display:flex;
     justify-content:space-between;
@@ -275,9 +340,6 @@
     padding:16px;
     margin:16px 0;
     background:var(--white);
-  }
-  .cart-column fieldset{
-    margin:0;
   }
   legend{padding:0 8px;font-weight:800;color:var(--red);font-family:"Baloo 2",sans-serif;}
   .field{margin-bottom:12px;}
@@ -320,7 +382,8 @@
     padding:32px;
     text-align:center;
   }
-  .confirm-box .check{font-size:48px;}
+  .confirm-box .check{color:var(--red);display:flex;justify-content:center;}
+  .confirm-box .check svg{width:56px;height:56px;}
   .confirm-box h2{color:var(--success);margin:8px 0;}
   .order-id{
     display:inline-block;
@@ -441,6 +504,14 @@
     <a class="nav-link" href="index.html#story">Our Story</a>
     <button id="navOrder" class="active" onclick="showView('order')">Order</button>
     <button id="navAdmin" onclick="showView('admin')">Admin</button>
+    <button class="cart-toggle" id="cartToggle" onclick="toggleCart()" aria-label="View cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="21" r="1"/>
+        <circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      <span class="cart-badge" id="cartBadge">0</span>
+    </button>
   </nav>
 </header>
 
@@ -448,73 +519,93 @@
 
   <!-- ========== 訂購頁 ========== -->
   <section id="view-order" class="view active">
-    <div class="layout">
-      <div>
-        <div class="category-tabs" id="categoryTabs"></div>
-        <div class="product-grid" id="productGrid"></div>
+    <div class="category-tabs" id="categoryTabs"></div>
+    <div class="product-grid" id="productGrid"></div>
+  </section>
+
+  <!-- ========== 購物車抽屜(右側滑出) ========== -->
+  <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-drawer-header">
+      <h2 style="display:flex;align-items:center;gap:8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0;">
+          <circle cx="9" cy="21" r="1"/>
+          <circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Your Cart
+      </h2>
+      <button class="cart-close" onclick="closeCart()" aria-label="Close cart">✕</button>
+    </div>
+    <div class="cart-drawer-body">
+      <div class="cart-box">
+        <div id="cartList"></div>
+        <div class="cart-total">
+          <span>Total</span>
+          <span id="cartTotal">$0.00</span>
+        </div>
       </div>
 
-      <div class="cart-column">
-        <div class="cart-box">
-          <h2>🛒 Your Cart</h2>
-          <div id="cartList"></div>
-          <div class="cart-total">
-            <span>Total</span>
-            <span id="cartTotal">$0.00</span>
+      <fieldset id="customerForm">
+        <legend>Order Details</legend>
+        <div class="field">
+          <label>Name *</label>
+          <input type="text" id="custName" placeholder="Your name">
+          <div class="error" id="err-name">Please enter your name</div>
+        </div>
+        <div class="field">
+          <label>Phone *</label>
+          <input type="tel" id="custPhone" placeholder="Your phone number">
+          <div class="error" id="err-phone">Please enter a valid phone number</div>
+        </div>
+        <div class="field">
+          <label>Pickup Method *</label>
+          <select id="custMethod" onchange="toggleAddress()">
+            <option value="Pickup">Store Pickup</option>
+            <option value="Delivery">Delivery</option>
+          </select>
+        </div>
+        <div class="field" id="addressField" style="display:none;">
+          <label>Delivery Address *</label>
+          <input type="text" id="custAddress" placeholder="Full delivery address">
+          <div class="error" id="err-address">Please enter an address</div>
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label>Date *</label>
+            <input type="date" id="custDate">
+            <div class="error" id="err-date">Please choose a date</div>
+          </div>
+          <div class="field">
+            <label>Time *</label>
+            <input type="time" id="custTime">
+            <div class="error" id="err-time">Please choose a time</div>
           </div>
         </div>
-
-        <fieldset id="customerForm">
-          <legend>Order Details</legend>
-          <div class="field">
-            <label>Name *</label>
-            <input type="text" id="custName" placeholder="Your name">
-            <div class="error" id="err-name">Please enter your name</div>
-          </div>
-          <div class="field">
-            <label>Phone *</label>
-            <input type="tel" id="custPhone" placeholder="Your phone number">
-            <div class="error" id="err-phone">Please enter a valid phone number</div>
-          </div>
-          <div class="field">
-            <label>Pickup Method *</label>
-            <select id="custMethod" onchange="toggleAddress()">
-              <option value="Pickup">Store Pickup</option>
-              <option value="Delivery">Delivery</option>
-            </select>
-          </div>
-          <div class="field" id="addressField" style="display:none;">
-            <label>Delivery Address *</label>
-            <input type="text" id="custAddress" placeholder="Full delivery address">
-            <div class="error" id="err-address">Please enter an address</div>
-          </div>
-          <div class="two-col">
-            <div class="field">
-              <label>Date *</label>
-              <input type="date" id="custDate">
-              <div class="error" id="err-date">Please choose a date</div>
-            </div>
-            <div class="field">
-              <label>Time *</label>
-              <input type="time" id="custTime">
-              <div class="error" id="err-time">Please choose a time</div>
-            </div>
-          </div>
-          <div class="field">
-            <label>Notes</label>
-            <textarea id="custNote" rows="2" placeholder="Allergies, special requests, etc."></textarea>
-          </div>
-          <div class="error" id="err-cart">Your cart is empty — add something first!</div>
-          <button class="submit-btn" onclick="submitOrder()">Place Order</button>
-        </fieldset>
-      </div>
+        <div class="field">
+          <label>Notes</label>
+          <textarea id="custNote" rows="2" placeholder="Allergies, special requests, etc."></textarea>
+        </div>
+        <div class="error" id="err-cart">Your cart is empty — add something first!</div>
+        <button class="submit-btn" onclick="submitOrder()">Place Order</button>
+      </fieldset>
     </div>
-  </section>
+  </div>
 
   <!-- ========== 確認頁 ========== -->
   <section id="view-confirm" class="view">
     <div class="confirm-box">
-      <div class="check">🐙</div>
+      <div class="check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 10a4 4 0 1 1 8 0v3"/>
+          <circle cx="10" cy="9" r=".6" fill="currentColor" stroke="none"/>
+          <circle cx="14" cy="9" r=".6" fill="currentColor" stroke="none"/>
+          <path d="M8 13c-1 2-2 2-2 4"/>
+          <path d="M10.5 13.5c-.5 2.5-1 3-1.5 5"/>
+          <path d="M13.5 13.5c.5 2.5 1 3 1.5 5"/>
+          <path d="M16 13c1 2 2 2 2 4"/>
+        </svg>
+      </div>
       <h2>Order placed!</h2>
       <div class="order-id" id="confirmOrderId"></div>
       <div class="confirm-detail" id="confirmDetail"></div>
@@ -651,9 +742,25 @@ function showView(v){
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.getElementById('navOrder').classList.remove('active');
   document.getElementById('navAdmin').classList.remove('active');
+  closeCart();
+  document.getElementById('cartToggle').style.display = v==='order' ? 'inline-flex' : 'none';
   if(v==='order'){ document.getElementById('view-order').classList.add('active'); document.getElementById('navOrder').classList.add('active'); }
   if(v==='confirm'){ document.getElementById('view-confirm').classList.add('active'); }
   if(v==='admin'){ document.getElementById('view-admin').classList.add('active'); document.getElementById('navAdmin').classList.add('active'); renderAdminIfLoggedIn(); }
+}
+
+/* ---------- 購物車抽屜開關 ---------- */
+function openCart(){
+  document.getElementById('cartDrawer').classList.add('open');
+  document.getElementById('cartOverlay').classList.add('open');
+}
+function closeCart(){
+  document.getElementById('cartDrawer').classList.remove('open');
+  document.getElementById('cartOverlay').classList.remove('open');
+}
+function toggleCart(){
+  const isOpen = document.getElementById('cartDrawer').classList.contains('open');
+  if(isOpen){ closeCart(); } else { openCart(); }
 }
 
 /* ---------- 商品渲染(依目前分類過濾) ---------- */
@@ -711,6 +818,7 @@ function addToCart(id){
   if(existing){ existing.qty += qty; }
   else{ cart.push({productId:id, name:p.name, spec, unitPrice, qty}); }
   renderCart();
+  openCart();
 }
 
 function removeFromCart(idx){
@@ -738,6 +846,8 @@ function renderCart(){
   }
   const total = cart.reduce((s,c)=>s+c.unitPrice*c.qty,0);
   document.getElementById('cartTotal').textContent = '$'+total.toFixed(2);
+  const count = cart.reduce((s,c)=>s+c.qty,0);
+  document.getElementById('cartBadge').textContent = count;
 }
 
 function toggleAddress(){
@@ -792,6 +902,7 @@ function submitOrder(){
     <div><b>Total:</b> $${total.toFixed(2)}</div>
     ${note?`<div><b>Notes:</b> ${note}</div>`:''}
   `;
+  closeCart();
   showView('confirm');
 
   // 清空購物車與表單,準備下一筆
